@@ -1,0 +1,384 @@
+/* Stats page: full-viewport layer (mask + page panel) over the whole GUI,
+   opened from the sidebar pet. Charts use the design tokens so the page
+   follows the active theme. */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mask {
+  position: absolute;
+  inset: 0;
+  background: var(--dsw-alias-bg-mask-1);
+  backdrop-filter: var(--dsw-mask-blur);
+}
+
+.page {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: min(980px, calc(100vw - 64px));
+  height: min(820px, calc(100vh - 64px));
+  border-radius: 20px;
+  background: var(--dsw-alias-bg-layer-1);
+  border: 1px solid var(--dsw-alias-border-l2);
+  box-shadow: var(--dsw-shadow-lv3);
+  color: var(--dsw-alias-label-primary);
+  overflow: hidden;
+}
+
+/* Header: title + subtitle left, window switch + actions right. */
+.header {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid var(--dsw-alias-border-l1);
+}
+
+.heading {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 26px;
+}
+
+.subtitle {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.headerActions {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.windowSwitch {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px;
+  background: var(--dsw-alias-bg-layer-2);
+}
+
+.windowButton {
+  border: none;
+  border-radius: 8px;
+  padding: 4px 10px;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  font-size: 12px;
+  line-height: 18px;
+  cursor: pointer;
+}
+
+.windowButton:hover {
+  color: var(--dsw-alias-label-primary);
+}
+
+.windowActive {
+  background: var(--dsw-alias-button-elevated-fill);
+  color: var(--dsw-alias-label-primary);
+  font-weight: 500;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--dsw-alias-label-secondary);
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  color: var(--dsw-alias-label-primary);
+}
+
+.spinning {
+  animation: spin 800ms linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Scrollable body. */
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.state {
+  padding: 40px 0;
+  text-align: center;
+  color: var(--dsw-alias-label-tertiary);
+  font-size: 13px;
+}
+
+/* Today's summary cards. */
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-base);
+}
+
+.statLabel {
+  font-size: 12px;
+  line-height: 18px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 28px;
+  color: var(--dsw-alias-label-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.statSub {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.tone-tokens .statValue {
+  color: var(--dsw-alias-brand-primary);
+}
+
+.tone-cost .statValue {
+  color: var(--dsw-alias-state-warn-primary);
+}
+
+.tone-code .statValue {
+  color: var(--dsw-alias-state-success-primary);
+}
+
+.tone-commits .statValue {
+  color: var(--dsw-alias-state-business-primary);
+}
+
+/* Chart cards. */
+.chartCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--dsw-alias-border-l2);
+  background: var(--dsw-alias-bg-base);
+}
+
+.chartHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chartTitle {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.chartHint {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--dsw-alias-label-tertiary);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
+}
+
+/* SVG chrome. */
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.axisLabel {
+  font-size: 10px;
+  fill: var(--dsw-alias-label-tertiary);
+}
+
+.dayLabel {
+  font-size: 10px;
+  fill: var(--dsw-alias-label-secondary);
+}
+
+.barLabel {
+  font-size: 10px;
+  fill: var(--dsw-alias-label-secondary);
+  pointer-events: none;
+}
+
+.barInput {
+  fill: var(--dsw-alias-brand-primary);
+}
+
+.barOutput {
+  fill: var(--dsw-alias-state-business-primary);
+}
+
+.barCacheRead {
+  fill: var(--dsw-alias-state-business-tertiary);
+}
+
+.barCacheWrite {
+  fill: var(--dsw-alias-state-warn-tertiary);
+}
+
+.barCost {
+  fill: var(--dsw-alias-state-warn-primary);
+}
+
+.barAdded {
+  fill: var(--dsw-alias-state-success-primary);
+}
+
+.barDeleted {
+  fill: var(--dsw-alias-state-error-primary);
+}
+
+.barCommits {
+  fill: var(--dsw-alias-state-business-primary);
+}
+
+/* Legend. */
+.legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--dsw-alias-label-secondary);
+}
+
+.legendDot {
+  width: 9px;
+  height: 9px;
+  border-radius: 3px;
+}
+
+/* Commit records list. */
+.commitList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.commitRow {
+  display: grid;
+  grid-template-columns: 56px 44px 92px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 4px;
+  border-top: 1px solid var(--dsw-alias-border-l1);
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.commitDay {
+  color: var(--dsw-alias-label-secondary);
+  font-weight: 500;
+}
+
+.commitTime {
+  color: var(--dsw-alias-label-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.commitRepo {
+  color: var(--dsw-alias-label-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.commitMessage {
+  color: var(--dsw-alias-label-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.commitHash {
+  color: var(--dsw-alias-label-tertiary);
+  font-family: var(--dsw-font-mono, monospace);
+  text-align: right;
+}
+
+@media (max-width: 720px) {
+  .commitRow {
+    grid-template-columns: 56px 44px minmax(0, 1fr) 64px;
+  }
+
+  .commitRepo {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
+  }
+}

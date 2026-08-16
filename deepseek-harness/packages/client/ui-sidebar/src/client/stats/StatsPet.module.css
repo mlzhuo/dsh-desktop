@@ -1,0 +1,164 @@
+/* The sidebar pet (today's usage summary). Wide renders a compact card at
+   the top of the column; the rail renders a plain pet medallion. Both are
+   buttons opening the full stats page. */
+
+.pet {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 64px;
+  padding: 8px 10px;
+  margin: 4px 0 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--dsw-alias-border-l2);
+  border-radius: 16px;
+  background: var(--dsw-alias-bg-layer-1);
+  color: var(--dsw-alias-label-primary);
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 120ms var(--ds-ease-in-out), transform 120ms var(--ds-ease-in-out), border-color 120ms var(--ds-ease-in-out);
+}
+
+.pet:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+  border-color: var(--dsw-alias-border-l3);
+  transform: translateY(-1px);
+}
+
+.pet:active {
+  transform: translateY(0);
+}
+
+.dimmed {
+  opacity: 0.72;
+}
+
+/* Pet avatar: a gradient medallion with the whale mark, gently bobbing. */
+.avatar {
+  flex: none;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--dsw-alias-brand-primary), var(--dsw-alias-state-business-tertiary));
+  color: #fff;
+  box-shadow: 0 2px 8px var(--dsw-shadow-lv1);
+  animation: pet-bob 3.2s var(--ds-ease-in-out) infinite;
+}
+
+.fish {
+  display: block;
+}
+
+@keyframes pet-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+
+/* Live pulse dot on the avatar corner. */
+.liveDot {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--dsw-alias-state-success-primary);
+  border: 2px solid var(--dsw-alias-bg-layer-1);
+  animation: live-pulse 2.4s ease-out infinite;
+}
+
+.liveDotOff {
+  background: var(--dsw-alias-state-warn-primary);
+  animation: none;
+}
+
+@keyframes live-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--dsw-alias-state-success-primary) 55%, transparent); }
+  70% { box-shadow: 0 0 0 5px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.copy {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.title {
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 18px;
+  color: var(--dsw-alias-label-primary);
+}
+
+.metric {
+  font-size: 11px;
+  line-height: 16px;
+  color: var(--dsw-alias-label-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.codeMetric {
+  color: var(--dsw-alias-label-tertiary);
+}
+
+/* Rail medallion (36px rhythm, same as the other rail controls). */
+.railPet {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin: 2px 0 6px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  color: var(--dsw-alias-label-primary);
+}
+
+.railPet:hover {
+  background: var(--dsw-alias-interactive-bg-hover);
+}
+
+.railAvatar {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--dsw-alias-brand-primary), var(--dsw-alias-state-business-tertiary));
+  color: #fff;
+  animation: pet-bob 3.2s var(--ds-ease-in-out) infinite;
+}
+
+.railAvatar .liveDot {
+  right: -1px;
+  bottom: -1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .avatar,
+  .railAvatar {
+    animation: none;
+  }
+
+  .liveDot {
+    animation: none;
+  }
+}
