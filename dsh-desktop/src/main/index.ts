@@ -46,15 +46,14 @@ if (!gotLock) {
   registerScheme() // 必须在 app ready 之前
 
   let mainWindow: BrowserWindow | null = null
-  let host: HostManager
+  let host: HostManager | undefined
+  /** 启动早期失败信息：窗口被关闭后再打开时复用展示。 */
+  let startupFailure: { message: string; detail: string } | null = null
 
   const getWindow = (): BrowserWindow | null => mainWindow
 
   app.on('second-instance', () => {
-    if (mainWindow !== null) {
-      if (mainWindow.isMinimized()) mainWindow.restore()
-      mainWindow.focus()
-    }
+    ensureWindow()
   })
 
   const createWindow = (): void => {
@@ -166,7 +165,52 @@ if (!gotLock) {
     void win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
   }
 
-  const onHostCrashed = async (code: number | null, signal: NodeJS.Signals | null): Promise<void> => {
+  /** 记录并展示启动失败页（窗口被关闭后重建时复用同一信息）。 */
+  const failStartup = (win: BrowserWindow, message: string, detail: string): void => {
+    startupFailure = { message, detail }
+    showFailure(win, message, detail)
+  }
+
+  /**
+   * 确保应用窗口存在且已加载应用页。
+   * - 已有窗口：还原最小化并聚焦（Dock 点击 / 二次启动的标准行为）；
+   * - 无窗口（用户点了窗口关闭钮之后）：重建窗口并接回仍在运行的宿主。
+   *   宿主已就绪直接用其端口加载应用页；未就绪则走完整启动流程；
+   *   启动早期失败则复用失败信息。
+   */
+  const ensureWindow = (): void => {
+    if (mainWindow !== null) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+      return
+    }
+    createWindow()
+    const win = mainWindow
+    if (win === null) return
+
+    if (host === undefined) {
+      const f = startupFailure
+      failStartup(win, f?.message ?? 'DSH 宿主未初始化', f?.detail ?? '应用未完成启动，请退出后重新打开。')
+      return
+    }
+    const port = host.currentPort
+    if (port !== undefined) {
+      // 宿主仍存活：直接加载应用页（窗口隐藏期间完成渲染，无闪烁）。
+      loadApp(port)
+    } else {
+      showLoading(win) // 宿主未就绪或已退出：走完整启动流程
+      void host.waitReady()
+        .then((p) => loadApp(p))
+        .catch((error) => {
+          console.error('[desktop] host failed to start:', error)
+          if (mainWindow !== null) {
+            failStartup(mainWindow, String(error), `DSH 检出目录：${CHECKOUT}（可用 DSH_CHECKOUT 覆盖）`)
+          }
+        })
+    }
+  }
+
+  const onHostCrashed = async (hm: HostManager, code: number | null, signal: NodeJS.Signals | null): Promise<void> => {
     if (mainWindow === null) return
     const { response } = await dialog.showMessageBox(mainWindow, {
       type: 'error',
@@ -179,7 +223,7 @@ if (!gotLock) {
     })
     if (response === 0) {
       try {
-        const port = await host.waitReady()
+        const port = await hm.waitReady()
         loadApp(port)
       } catch (error) {
         console.error('[host] restart failed:', error)
@@ -197,7 +241,7 @@ if (!gotLock) {
     if (nodeBin === undefined) {
       createWindow()
       if (mainWindow !== null) {
-        showFailure(
+        failStartup(
           mainWindow,
           '未找到可用的 Node.js 运行时',
           'DSH 宿主需要 Node.js ^22.19 或 >=24。\n'
@@ -216,7 +260,7 @@ if (!gotLock) {
     if (HOST_SOURCE === 'bundle' && !existsSync(hostEntry)) {
       createWindow()
       if (mainWindow !== null) {
-        showFailure(
+        failStartup(
           mainWindow,
           'App 内未找到 DSH host 包',
           `缺少 ${hostEntry}\n请重新打包（npm run bundle:host 后 electron-builder 重新构建）。`,
@@ -225,7 +269,7 @@ if (!gotLock) {
       return
     }
 
-    host = new HostManager({
+    const hostManager = new HostManager({
       entry: hostEntry,
       entryIsSource: hostEntryIsSource,
       cwd: hostCwd,
@@ -233,17 +277,18 @@ if (!gotLock) {
       logDir: LOG_DIR,
       nodeBin,
     })
-    host.on('exit', (code, signal) => { void onHostCrashed(code, signal) })
+    host = hostManager
+    hostManager.on('exit', (code, signal) => { void onHostCrashed(hostManager, code, signal) })
 
     const updater = setupUpdater()
     registerIpc({
-      getPort: () => host.currentPort,
+      getPort: () => hostManager.currentPort,
       getWindow,
-      restartHost: () => host.restart(),
+      restartHost: () => hostManager.restart(),
       quitApp: () => app.quit(),
       appVersion: app.getVersion(),
     })
-    registerProtocol(() => host.currentPort)
+    registerProtocol(() => hostManager.currentPort)
 
     buildMenu({
       getWindow,
@@ -253,10 +298,10 @@ if (!gotLock) {
       hostSource: HOST_SOURCE,
       onCheckUpdates: () => { void updater.checkForUpdates() },
       onRestartHost: () => {
-        void host.restart().then((port) => loadApp(port))
+        void hostManager.restart().then((port) => loadApp(port))
       },
       onOpenHostInBrowser: () => {
-        const port = host.currentPort
+        const port = hostManager.currentPort
         if (port !== undefined) void shell.openExternal(`http://127.0.0.1:${port}/`)
       },
     })
@@ -270,7 +315,7 @@ if (!gotLock) {
     } catch (error) {
       console.error('[desktop] host failed to start:', error)
       if (mainWindow !== null) {
-        showFailure(
+        failStartup(
           mainWindow,
           String(error),
           `DSH 检出目录：${CHECKOUT}（可用 DSH_CHECKOUT 覆盖）\nNode：${nodeBin}（可用 DSH_NODE 覆盖）`,
@@ -280,7 +325,7 @@ if (!gotLock) {
   })
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    ensureWindow()
   })
 
   app.on('window-all-closed', () => {
