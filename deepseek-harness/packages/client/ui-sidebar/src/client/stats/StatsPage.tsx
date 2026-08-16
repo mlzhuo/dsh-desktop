@@ -11,7 +11,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
 import { IconCloseOutline16, IconRefreshOutline16 } from '@deepseek-ai/dsh-client-ui-primitives'
 import {
-  formatCompact, formatDateRange, formatDayLabel, formatLines, formatRmb,
+  formatCompact, formatDateRange, formatDayLabel, formatRmb,
 } from './format.ts'
 import type { StatsApiFace, StatsBalanceValue, StatsDay, StatsDailyValue } from './wire.ts'
 import type { SidebarKey } from '../locales.ts'
@@ -232,7 +232,7 @@ function CommitsChart({ days, now, t }: { days: readonly StatsDay[]; now: Date; 
 }
 
 /** One summary stat card (today's figure). */
-function StatCard(props: { label: string; value: string; sub?: string | undefined; tone: 'tokens' | 'cost' | 'code' | 'commits' }) {
+function StatCard(props: { label: string; value: React.ReactNode; sub?: string | undefined; tone: 'tokens' | 'cost' | 'code' | 'commits' }) {
   return (
     <div className={clsx(css.statCard, css[`tone-${props.tone}`])}>
       <span className={css.statLabel}>{props.label}</span>
@@ -402,7 +402,15 @@ export function StatsPage({ api, onClose, t }: StatsPageProps) {
                 />
                 <StatCard
                   label={t('stats.today.lines')}
-                  value={today === undefined ? '0' : formatLines(today.code.linesAdded, today.code.linesDeleted)}
+                  value={today === undefined
+                    ? '0'
+                    : (
+                      <>
+                        +{formatCompact(today.code.linesAdded)}
+                        {' / '}
+                        <span className={css.deletedNum}>−{formatCompact(today.code.linesDeleted)}</span>
+                      </>
+                    )}
                   sub={today === undefined ? undefined : t('stats.lines.net', { value: formatCompact(Math.max(0, today.code.linesAdded - today.code.linesDeleted)) })}
                   tone="code"
                 />
@@ -418,10 +426,10 @@ export function StatsPage({ api, onClose, t }: StatsPageProps) {
                 title={t('stats.chart.tokens.title')}
                 hint={t('stats.chart.tokens.hint')}
                 legend={[
-                  { color: 'var(--dsw-alias-brand-primary)', label: t('stats.legend.input') },
-                  { color: 'var(--dsw-alias-state-business-tertiary)', label: t('stats.legend.cacheRead') },
-                  { color: 'var(--dsw-alias-state-warn-tertiary)', label: t('stats.legend.cacheWrite') },
-                  { color: 'var(--dsw-alias-state-business-primary)', label: t('stats.legend.output') },
+                  { color: 'var(--dsw-static-purple-500)', label: t('stats.legend.input') },
+                  { color: 'var(--dsw-static-purple-300)', label: t('stats.legend.cacheRead') },
+                  { color: 'var(--dsw-static-purple-200)', label: t('stats.legend.cacheWrite') },
+                  { color: 'var(--dsw-static-purple-450)', label: t('stats.legend.output') },
                 ]}
               >
                 <TokensChart days={days} now={now} t={t} />

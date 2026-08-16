@@ -1,7 +1,7 @@
 /**
  * Preload（IPC 模式专用）：在主世界安装 WebSocket shim。
  *
- * 页面（dsh-app://app）里的 WebApiClient 用 `new WebSocket(url)` 建立
+ * 页面（dsh-app://localhost）里的 WebApiClient 用 `new WebSocket(url)` 建立
  * mux/host 事件下行流；protocol.handle 不支持 WebSocket upgrade，因此这里
  * 用 IPC 频道替代真实 socket：
  *   - 订阅：ipcRenderer.send('dsh:events:subscribe', kind)

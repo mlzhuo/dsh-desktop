@@ -3,7 +3,7 @@
  *
  * 启动流程：单实例锁 → 注册 dsh-app 特权 scheme → 创建窗口（loading）→
  * 拉起 DSH host 子进程（--port 0）→ 解析就绪端口 → 加载应用页（IPC 模式
- * 走 dsh-app://app/，HTTP 兜底模式走 http://127.0.0.1:PORT）。
+ * 走 dsh-app://localhost/，HTTP 兜底模式走 http://127.0.0.1:PORT）。
  */
 import { app, BrowserWindow, dialog, shell } from 'electron'
 import { existsSync } from 'node:fs'
@@ -150,7 +150,7 @@ if (!gotLock) {
         try {
           const r = await window.__dshRetryHost();
           if (r && r.port) {
-            if (location.protocol === 'dsh-app:') location.href = 'dsh-app://app/';
+            if (location.protocol === 'dsh-app:') location.href = 'dsh-app://localhost/';
             else location.href = 'http://127.0.0.1:' + r.port + '/';
           } else {
             document.getElementById('detail').textContent = '重启失败：' + ((r && r.error) || '未知错误');

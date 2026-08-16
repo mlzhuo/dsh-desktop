@@ -1,12 +1,17 @@
 /**
  * dsh-app:// 自定义协议：渲染进程的"同源"载体。
  *
- * 页面加载 `dsh-app://app/`（standard + secure + supportFetchAPI），所有
+ * 页面加载 `dsh-app://localhost/`（standard + secure + supportFetchAPI），所有
  * 请求（index.html、/assets/*、/plugins/* 客户端 bundle、/api 单发 RPC）
  * 都由主进程代理到回环 host。这样：
- *   - 页面来源是 dsh-app://app，从不直接触碰 127.0.0.1 网络面（纵深防御）；
+ *   - 页面来源是 dsh-app://localhost，从不直接触碰 127.0.0.1 网络面（纵深防御）；
  *   - 代理转发时剥离 Origin / sec-fetch-* 标记，让请求通过宿主 /api
  *     的 browser-trust 围栏（Host 由 fetch 按目标 URL 自动设为回环权威）。
+ *
+ * Host 必须用 `localhost`（而非任意名字）：DSH 前端客户端按
+ * `location.hostname` 判断页面是否处于回环权威（isLoopback），并据此决定
+ * 设置作用域走宿主持久化还是仅内存。非回环名字会让语言等设置静默退化为
+ * 进程内生效、重启即丢——必须保持 localhost。
  *
  * WebSocket 事件流（/api/events.mux、/api/events.host）不走本协议——
  * protocol.handle 不支持 upgrade，由 preload 的 IPC shim 负责（见 ipc.ts）。
@@ -14,7 +19,7 @@
 import { protocol, net } from 'electron'
 
 const SCHEME = 'dsh-app'
-const HOST = 'app'
+const HOST = 'localhost'
 
 /** 在 app ready 之前注册特权 scheme（必须）。 */
 export function registerScheme(): void {

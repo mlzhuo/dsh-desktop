@@ -69,6 +69,16 @@ body {
   --dsw-static-neutral-bluish-875: rgb(35, 35, 36);
   --dsw-static-neutral-bluish-900: rgb(27, 27, 28);
   --dsw-static-neutral-bluish-950: rgb(21, 21, 23);
+  /* Soft lavender-violet ramp for chart series (token usage stack); the
+     statics are theme-independent, so the stack reads identically in both
+     themes. */
+  --dsw-static-purple-100: rgb(240, 233, 255);
+  --dsw-static-purple-200: rgb(224, 212, 255);
+  --dsw-static-purple-300: rgb(203, 182, 253);
+  --dsw-static-purple-400: rgb(178, 145, 247);
+  --dsw-static-purple-450: rgb(162, 126, 240);
+  --dsw-static-purple-500: rgb(142, 102, 229);
+  --dsw-static-purple-600: rgb(116, 79, 197);
   --dsw-static-red-100: rgb(254, 226, 226);
   --dsw-static-red-400: rgb(242, 90, 90);
   --dsw-static-red-500: rgb(239, 68, 68);
@@ -145,6 +155,16 @@ body[data-ds-dark-theme] {
   --dsw-static-neutral-bluish-875: rgb(35, 35, 36);
   --dsw-static-neutral-bluish-900: rgb(27, 27, 28);
   --dsw-static-neutral-bluish-950: rgb(21, 21, 23);
+  /* Soft lavender-violet ramp for chart series (token usage stack); the
+     statics are theme-independent, so the stack reads identically in both
+     themes. */
+  --dsw-static-purple-100: rgb(240, 233, 255);
+  --dsw-static-purple-200: rgb(224, 212, 255);
+  --dsw-static-purple-300: rgb(203, 182, 253);
+  --dsw-static-purple-400: rgb(178, 145, 247);
+  --dsw-static-purple-450: rgb(162, 126, 240);
+  --dsw-static-purple-500: rgb(142, 102, 229);
+  --dsw-static-purple-600: rgb(116, 79, 197);
   --dsw-static-red-100: rgb(254, 226, 226);
   --dsw-static-red-400: rgb(242, 90, 90);
   --dsw-static-red-500: rgb(239, 68, 68);

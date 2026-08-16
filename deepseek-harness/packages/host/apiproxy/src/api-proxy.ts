@@ -867,9 +867,13 @@ async function statsScanRepo(
   windowDays: number,
   floorKey: string,
   signal?: AbortSignal,
+  cutMs?: number,
 ): Promise<StatsRepoScan | undefined> {
   signal?.throwIfAborted()
-  const cached = cache.get(path)
+  // The cut participates in the cache key: an archive/unarchive between two
+  // polls must not serve a scan folded under the previous boundary.
+  const cacheKey = `${path}::${cutMs ?? ''}`
+  const cached = cache.get(cacheKey)
   if (cached !== undefined && Date.now() - cached.at < STATS_GIT_TTL_MS) return cached.scan
   signal?.throwIfAborted()
   let stdout: string
@@ -903,6 +907,9 @@ async function statsScanRepo(
     if (hash === undefined || atSeconds === undefined) continue
     const atMs = Number(atSeconds) * 1000
     if (!Number.isFinite(atMs)) continue
+    // Archive cut: a workspace archived at instant T keeps the commits before
+    // T (already-counted data is never deducted) and excludes T and later.
+    if (cutMs !== undefined && atMs >= cutMs) continue
     const key = statsDayKey(atMs)
     if (key < floorKey || key > statsDayKey(Date.now())) continue
     const code = codeByDay.get(key) ?? { commits: 0, linesAdded: 0, linesDeleted: 0 }
@@ -928,7 +935,7 @@ async function statsScanRepo(
     else if (list.length < STATS_COMMITS_PER_DAY * 2) list.push(sample)
   }
   const scan: StatsRepoScan = { codeByDay, samples }
-  cache.set(path, { at: Date.now(), scan })
+  cache.set(cacheKey, { at: Date.now(), scan })
   return scan
 }
 
@@ -4166,11 +4173,11 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
         const repos: StatsDailyValue['repos'] = []
         const seenPaths = new Set<string>()
         let scanned = 0
-        const scanDir = async (title: string, path: string): Promise<void> => {
+        const scanDir = async (title: string, path: string, cutMs?: number): Promise<void> => {
           if (scanned >= STATS_MAX_REPOS || seenPaths.has(path)) return
           signal?.throwIfAborted()
           seenPaths.add(path)
-          const scan = await statsScanRepo(statsGitCache, title, path, days, floorKey, signal)
+          const scan = await statsScanRepo(statsGitCache, title, path, days, floorKey, signal, cutMs)
           if (scan === undefined) return
           scanned += 1
           repos.push({ title, path })
@@ -4187,15 +4194,20 @@ export function createApiProxy(ctx: Context, defaults: ApiProxyDefaults): ApiPro
             else acc.push(...list)
           }
         }
-        // Code stats scope: git repositories inside the CURRENT non-archived
-        // registered workspaces only. Archived workspaces are excluded
-        // entirely (their commits no longer appear in any day), and
-        // unregistered session cwds are out of scope.
+        // Code stats scope: git repositories inside the registered workspaces
+        // (archived included). An archived workspace's commits are frozen at
+        // its archive instant — pre-archive commits stay in every day they
+        // fell on, the archive instant and later are excluded — so archiving
+        // never deducts already-counted code activity. Unregistered session
+        // cwds are out of scope.
         if (registry !== undefined) {
           for (const workspace of registry.list()) {
-            if (workspace.archivedAt !== null) continue
             for (const repo of await statsGitRootsUnder(workspace.path, signal)) {
-              await scanDir(workspace.title, repo)
+              await scanDir(
+                workspace.title,
+                repo,
+                workspace.archivedAt === null ? undefined : workspace.archivedAt,
+              )
             }
           }
         }

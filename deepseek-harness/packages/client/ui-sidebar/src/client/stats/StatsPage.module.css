@@ -198,6 +198,13 @@
   color: var(--dsw-alias-state-success-primary);
 }
 
+/* Deleted-line figure in the today card: same red the code chart paints its
+   deleted bars with, so the number and the chart agree. */
+.deletedNum {
+  color: var(--dsw-alias-state-error-primary);
+  font-weight: 600;
+}
+
 .tone-commits .statValue {
   color: var(--dsw-alias-state-business-primary);
 }
@@ -262,20 +269,22 @@
   pointer-events: none;
 }
 
+/* Daily token usage: one soft lavender-violet ramp so the stacked segments
+   read as one family (input is the deepest tone, cache segments the palest). */
 .barInput {
-  fill: var(--dsw-alias-brand-primary);
+  fill: var(--dsw-static-purple-500);
 }
 
 .barOutput {
-  fill: var(--dsw-alias-state-business-primary);
+  fill: var(--dsw-static-purple-450);
 }
 
 .barCacheRead {
-  fill: var(--dsw-alias-state-business-tertiary);
+  fill: var(--dsw-static-purple-300);
 }
 
 .barCacheWrite {
-  fill: var(--dsw-alias-state-warn-tertiary);
+  fill: var(--dsw-static-purple-200);
 }
 
 .barCost {

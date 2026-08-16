@@ -15,7 +15,7 @@ dsh-desktop/        本应用（Electron 桌面壳，即当前目录）
 
 - **Electron 壳引导 DSH host 子进程**（与 `dsh web` 完全相同的运行时，`--port 0` 由 OS 分配端口）；
 - **自包含 host 包（默认，打包版）**：`scripts/bundle-host.mjs` 按官方 release 流程把 DSH 全部产物（CLI、58+ 工作区包、前端 dist、agent-presets）打进 App 的 `Contents/Resources/host`，**运行时完全不依赖本地源码检出**；开发模式仍可用 `DSH_HOST_SOURCE=checkout` 跑源码；
-- **IPC 载体（默认）**：页面加载 `dsh-app://app/` 自定义协议，静态资源与 `/api` 单发请求由主进程代理到回环 host；mux/host 事件流由 preload WebSocket shim 经 IPC 转发——渲染进程全程不触碰回环网络；
+- **IPC 载体（默认）**：页面加载 `dsh-app://localhost/` 自定义协议，静态资源与 `/api` 单发请求由主进程代理到回环 host；mux/host 事件流由 preload WebSocket shim 经 IPC 转发——渲染进程全程不触碰回环网络。页面 host 固定为 `localhost`：DSH 前端按 `location.hostname` 判定回环权威（`isLoopback`），非回环名字会让语言等设置静默退化为仅内存、重启即丢；
 - **HTTP 兜底模式**：`DSH_TRANSPORT=http` 直接加载 `http://127.0.0.1:<port>`（调试用）；
 - **native seam**：目录选择、打开路径 / 文件 / 外链走 Electron 原生能力；
 - **生命周期**：单实例、宿主崩溃检测 + 一键重启、退出时优雅停机、日志落盘；启动失败在窗口内显示原因（可重试）；
@@ -77,12 +77,12 @@ npm run dist         # arm64 的 .dmg + .zip（未签名）
  │                     · checkout 模式：`node --import tsx/esm <checkout>/apps/cli/src/bin.ts`
  │                     统一 `--profile web --port 0`；解析就绪行 `dsh web: http://127.0.0.1:PORT`
  ├─ node-path.ts       Finder 环境下解析 node 绝对路径（nvm / homebrew）
- ├─ protocol.ts        `dsh-app://app/` 特权 scheme：页面所有请求代理到回环 host（剥离 Origin/sec-fetch*）
+ ├─ protocol.ts        `dsh-app://localhost/` 特权 scheme：页面所有请求代理到回环 host（剥离 Origin/sec-fetch*）
  ├─ ipc.ts             事件流桥（主进程持有宿主 WS，帧转发给渲染进程）+ native seam
  ├─ menu.ts / updater.ts
  └─ before-quit        优雅停机（SIGTERM → SIGKILL 兜底）
 [preload]              WebSocket shim：`new WebSocket(ws://dsh-app/…)` → IPC 订阅/帧转发
-[渲染进程]             dsh-app://app/ 加载 DSH Web 前端（file 级同源，无网络面）
+[渲染进程]             dsh-app://localhost/ 加载 DSH Web 前端（file 级同源，无网络面）
 ```
 
 ## 目录结构
