@@ -34,7 +34,7 @@ function mountColumn(): { column: HTMLElement; quiet: () => boolean } {
       collapsed={false} width={300}
       useSessions={neverHook} useWorkspaces={neverHook}
       startSession={vi.fn()} toggleSidebar={vi.fn()} t={t}
-      statsApi={{ daily: () => Promise.resolve({ rpcId: 'fx', result: { ok: true, value: { generatedAt: 0, timeZone: 'UTC', days: [], repos: [], costEstimated: true } } }) }}
+      statsApi={{ daily: () => Promise.resolve({ rpcId: 'fx', result: { ok: true, value: { generatedAt: 0, timeZone: 'UTC', days: [], repos: [], costEstimated: true } } }), balance: () => Promise.resolve({ rpcId: 'fx', result: { ok: true, value: { available: false, balances: [], total: 0 } } }) }}
       renderSlot={((_key: string, owner: SidebarSectionOwnerProps) =>
         <div data-testid="region" data-wide={owner.wide} />) as SidebarRootComponentProps['renderSlot']}
     />,

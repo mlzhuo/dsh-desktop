@@ -136,6 +136,7 @@ function record(path: string, sessionIds: string[], createdAt = '2026-07-24T00:0
     sessionIds: sessionIds.map(SessionId),
     createdAt,
     updatedAt: createdAt,
+    archivedAt: null,
   }
 }
 

@@ -212,4 +212,31 @@ export class TestWorkspaces implements IWorkspaces {
       draft.archivedSessionIds = [...draft.archivedSessionIds, sessionId]
     })
   }
+
+  /**
+   * Delete a session durably (recorded; default no-op).
+   * @param sessionId - session to delete.
+   */
+  async deleteSession(sessionId: SessionId): Promise<void> {
+    this.calls.push({ method: 'deleteSession', args: [sessionId] })
+    await (this.stubs.get('deleteSession')?.(sessionId) as Promise<void> | undefined)
+  }
+
+  /**
+   * Archive a workspace (recorded; default no-op).
+   * @param workspaceId - workspace to archive.
+   */
+  async archiveWorkspace(workspaceId: WorkspaceId): Promise<void> {
+    this.calls.push({ method: 'archiveWorkspace', args: [workspaceId] })
+    await (this.stubs.get('archiveWorkspace')?.(workspaceId) as Promise<void> | undefined)
+  }
+
+  /**
+   * Unarchive a workspace (recorded; default no-op).
+   * @param workspaceId - workspace to unarchive.
+   */
+  async unarchiveWorkspace(workspaceId: WorkspaceId): Promise<void> {
+    this.calls.push({ method: 'unarchiveWorkspace', args: [workspaceId] })
+    await (this.stubs.get('unarchiveWorkspace')?.(workspaceId) as Promise<void> | undefined)
+  }
 }

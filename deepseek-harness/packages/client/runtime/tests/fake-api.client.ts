@@ -18,6 +18,7 @@ function fakeWorkspace(id: string, over: Partial<WorkspaceView> = {}): Workspace
     sessionIds: [],
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
+    archivedAt: null,
     ...over,
   }
 }
@@ -204,6 +205,15 @@ export class FakeApiClient implements IApiClient {
   onWorkspaceArchiveSession: (payload: unknown) => Promise<RpcResponse<{ archivedSessionIds: SessionId[] }>> =
     payload => Promise.resolve(ok({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
 
+  onWorkspaceArchiveWorkspace: (payload: unknown) => Promise<RpcResponse<{ workspace: WorkspaceView }>> =
+    () => Promise.resolve(ok({ workspace: fakeWorkspace('fk-ws') }))
+
+  onWorkspaceUnarchiveWorkspace: (payload: unknown) => Promise<RpcResponse<{ workspace: WorkspaceView }>> =
+    () => Promise.resolve(ok({ workspace: fakeWorkspace('fk-ws') }))
+
+  onWorkspaceDeleteSession: (payload: unknown) => Promise<RpcResponse<{ archivedSessionIds: SessionId[] }>> =
+    payload => Promise.resolve(ok({ archivedSessionIds: [(payload as { sessionId: SessionId }).sessionId] }))
+
   readonly workspace: IApiClient['workspace'] = {
     list: (payload: unknown) => this.record('workspace.list', payload, this.onWorkspaceList(payload).then(response => (
       response.result.ok
@@ -219,6 +229,12 @@ export class FakeApiClient implements IApiClient {
       this.record('workspace.insertSessionBefore', payload, this.onWorkspaceInsertSessionBefore(payload)),
     archiveSession: (payload: unknown) =>
       this.record('workspace.archiveSession', payload, this.onWorkspaceArchiveSession(payload)),
+    archiveWorkspace: (payload: unknown) =>
+      this.record('workspace.archiveWorkspace', payload, this.onWorkspaceArchiveWorkspace(payload)),
+    unarchiveWorkspace: (payload: unknown) =>
+      this.record('workspace.unarchiveWorkspace', payload, this.onWorkspaceUnarchiveWorkspace(payload)),
+    deleteSession: (payload: unknown) =>
+      this.record('workspace.deleteSession', payload, this.onWorkspaceDeleteSession(payload)),
   }
 
   // Payloads stay `unknown` (lint-lane note above); response rows are the real
@@ -284,6 +300,11 @@ export class FakeApiClient implements IApiClient {
       days: [],
       repos: [],
       costEstimated: true,
+    }))),
+    balance: payload => this.record('stats.balance', payload, Promise.resolve(ok({
+      available: false,
+      balances: [],
+      total: 0,
     }))),
   }
 

@@ -85,7 +85,9 @@ function main() {
   // 3. 安装。注意不能加 --omit=optional：koffi 的 darwin 预编译二进制是
   //    optionalDependencies（os/cpu 约束），跳过会导致 koffi 走源码编译（需 CMake）。
   //    npm 会自动跳过不匹配平台的 optional 包（如 landlock-linux-*），macOS 无副作用。
-  run('npm', ['install', '--no-audit', '--no-fund', '--package-lock=false'], HOST_DIR)
+  //    --cache 指向 host/.npm-cache：~/.npm 可能含历史 sudo 运行遗留的 root 属主
+  //    文件导致 mkdtemp EPERM，且 host/ 每次整体重建，缓存目录天然自净、与宿主解耦。
+  run('npm', ['install', '--no-audit', '--no-fund', '--package-lock=false', '--cache', join(HOST_DIR, '.npm-cache')], HOST_DIR)
 
   // 4. 清理 + 校验
   rmSync(TARBALL_DIR, { recursive: true, force: true })

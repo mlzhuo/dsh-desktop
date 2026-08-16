@@ -20,7 +20,8 @@
     "check:host": "node -e \"require('fs').existsSync('host/node_modules/@deepseek-ai/dsh/lib/bin.js') || (console.error('缺少 host 包：请先运行 npm run bundle:host'), process.exit(1))\"",
     "pack:dir": "npm run build && npm run check:host && electron-builder --dir",
     "dist": "npm run build && npm run check:host && electron-builder --mac",
-    "dist:all": "npm run build && npm run check:host && electron-builder --mac --arm64"
+    "dist:all": "npm run build && npm run check:host && electron-builder --mac --arm64",
+    "build:app": "bash ../build-app.sh"
   },
   "dependencies": {
     "electron-updater": "^6.6.2"

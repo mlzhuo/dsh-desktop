@@ -32,4 +32,19 @@ npm start            # 编译 + 启动（IPC 模式，checkout 宿主）
 npm run bundle:host  # 构建自包含 host 包（可选）
 ```
 
+## 一键构建（推荐）
+
+```bash
+./build-app.sh          # 源码 → host 包 → 未签名 .app（release/mac-arm64/）
+./build-app.sh dist     # 再额外产出 arm64 的 .dmg + .zip
+```
+
+或从 `dsh-desktop/` 内：`npm run build:app`。
+
+该脚本保证：**绝不动源码**（无任何 git 回退/暂存操作，harness 安装用
+`--frozen-lockfile`）、**绝不留旧产物**（先 `pnpm clean` 清掉全部 `lib/` 与
+`*.tsbuildinfo` 增量状态再全量重建，`host/`、`dist/`、`release/` 全部重建），
+并在打包前逐字节比对 host 包前端与 `apps/web/dist`，不一致立即失败——避免
+“增量跳过 → 打包进旧代码 / 旧前端”。
+
 详见 [dsh-desktop/README.md](dsh-desktop/README.md)。

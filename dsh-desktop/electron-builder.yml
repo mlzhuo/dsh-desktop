@@ -7,6 +7,10 @@ directories:
 files:
   - dist/**/*
   - package.json
+# 直接使用本机已安装的 Electron（node_modules/electron/dist，版本由 package.json 锁
+# 定 43.4.0，与官方 zip 完全同源）：electron-builder 不再从 GitHub Releases 下载
+# electron zip，避免网络抖动导致打包失败，构建全程与网络解耦。
+electronDist: node_modules/electron/dist
 # 自包含 DSH host 包（scripts/bundle-host.mjs 生成）：由 afterPack 钩子
 # （scripts/after-pack.cjs）整目录复制到 Resources/host——extraResources 对
 # node_modules 有过滤，目录型复制不可靠。
