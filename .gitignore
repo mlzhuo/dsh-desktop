@@ -19,3 +19,6 @@ id_rsa.pub
 # 会话 / 持久化数据（可能含用户内容）
 *.sqlite
 *.sqlite3
+
+# pnpm 全局存储缓存（workspace 根，deepseek-harness/.gitignore 同规则）
+.pnpm-store/

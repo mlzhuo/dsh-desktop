@@ -1,6 +1,6 @@
 /**
  * The sidebar pet: a compact, playful live summary of today's usage. The
- * whale mark bobs gently, a pulse dot shows the feed is live, and the copy
+ * app icon bobs gently, a pulse dot shows the feed is live, and the copy
  * line renders input/output tokens, the account balance of the API key's
  * host account, code lines and commits for the current local day. Clicking
  * anywhere on the pet opens the full stats page (StatsPage). Data polls the
@@ -9,7 +9,6 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 import clsx from 'clsx'
-import { FishLogo } from '@deepseek-ai/dsh-client-ui-primitives'
 import { formatCompact, formatLines, formatRmb } from './format.ts'
 import type { StatsApiFace, StatsBalanceValue, StatsDailyValue } from './wire.ts'
 import type { SidebarKey } from '../locales.ts'
@@ -96,7 +95,9 @@ export function StatsPet({ wide, api, onOpen, t }: StatsPetProps) {
         onClick={onOpen}
       >
         <span className={css.railAvatar}>
-          <FishLogo size={20} />
+          <span className={css.avatarClip}>
+            <img className={css.railIcon} src="/app-icon.png" alt="" aria-hidden="true" />
+          </span>
           <span className={clsx(css.liveDot, !live && css.liveDotOff)} />
         </span>
       </button>
@@ -134,7 +135,9 @@ export function StatsPet({ wide, api, onOpen, t }: StatsPetProps) {
       onClick={onOpen}
     >
       <span className={css.avatar}>
-        <FishLogo className={css.fish} size={24} />
+        <span className={css.avatarClip}>
+          <img className={css.icon} src="/app-icon.png" alt="" aria-hidden="true" />
+        </span>
         <span className={clsx(css.liveDot, !live && css.liveDotOff)} />
       </span>
       <span className={css.copy}>

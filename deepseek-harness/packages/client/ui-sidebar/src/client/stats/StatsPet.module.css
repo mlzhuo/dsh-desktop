@@ -36,7 +36,7 @@
   opacity: 0.72;
 }
 
-/* Pet avatar: a gradient medallion with the whale mark, gently bobbing. */
+/* Pet avatar: a gradient medallion with the app icon, gently bobbing. */
 .avatar {
   flex: none;
   position: relative;
@@ -52,8 +52,28 @@
   animation: pet-bob 3.2s var(--ds-ease-in-out) infinite;
 }
 
-.fish {
+/* Clip seat: rounds the (slightly oversized) app icon to the medallion. The
+   avatar itself does not clip, so the live dot may hang off its corner. */
+.avatarClip {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+/* The app icon zooms slightly beyond the medallion so the image's square
+   edges fall outside the circle; flex centering keeps it centered and the
+   clip seat rounds it. The gradient behind shows only while the image
+   loads or after a network miss. */
+.icon,
+.railIcon {
   display: block;
+  width: 125%;
+  height: 125%;
+  object-fit: cover;
 }
 
 @keyframes pet-bob {
