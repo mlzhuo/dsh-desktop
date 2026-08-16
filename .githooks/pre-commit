@@ -1,0 +1,28 @@
+#!/bin/sh
+# pre-commit 钩子：阻止把凭据 / 机密提交进仓库（政策见 SECURITY.md）。
+# 新增凭据请放 ~/.dsh 或环境变量，仓库内只允许占位符（如 sk-…、your-key-here）。
+# 需要显式绕过时：git commit --no-verify（绕过后请立即清理，勿留在历史里）。
+set -eu
+
+# 1) 禁止暂存敏感文件名：.env*（占位模板 .env.example 除外）、私钥、证书、密钥库、会话数据库
+blocked=$(
+  git diff --cached --name-only --diff-filter=ACM \
+    | grep -E '(^|/)\.env(\.[^/]*)?$|\.(pem|p12|pfx|ppk|jks|keystore|key|sqlite|sqlite3)$|(^|/)id_rsa(\.[^/]*)?$' \
+    | grep -vE '(^|/)\.env\.example$' \
+    || true
+)
+if [ -n "$blocked" ]; then
+  echo "pre-commit 拦截：以下文件疑似凭据 / 密钥 / 会话数据，禁止入库（见 SECURITY.md）：" >&2
+  printf '%s\n' "$blocked" >&2
+  exit 1
+fi
+
+# 2) 扫描暂存内容中的高置信度机密特征。
+#    sk- 仅拦截 32+ 位字母数字串，避开测试夹具里的假 key（如 sk-e2efixture1234567890）。
+if git diff --cached -U0 --diff-filter=ACM \
+  | grep -nE 'ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|AKIA[0-9A-Z]{16}|xox[baprs]-[A-Za-z0-9-]{10,}|-----BEGIN [A-Z ]*PRIVATE KEY-----|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}|sk-[A-Za-z0-9]{32,}'; then
+  echo "pre-commit 拦截：暂存内容中检测到疑似 API key / token / 私钥（见 SECURITY.md）。" >&2
+  exit 1
+fi
+
+exit 0

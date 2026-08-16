@@ -14,6 +14,11 @@ dsh-desktop/        Electron 桌面壳应用（本仓库的主体，说明见 ds
 运行时由 Electron 主进程拉起 `host` 中的 `dsh` CLI（`--profile web --port 0`），
 页面经 `dsh-app://` 自定义协议 / IPC 桥接访问。
 
+## 安全
+
+凭据一律放 `~/.dsh` 或环境变量，仓库内只写占位符。仓库自带 `.gitignore` 加固与
+提交前密钥扫描钩子（`.githooks/pre-commit`），详见 [SECURITY.md](SECURITY.md)。
+
 ## 快速开始
 
 ```bash
