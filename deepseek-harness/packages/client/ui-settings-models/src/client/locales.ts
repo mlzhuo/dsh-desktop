@@ -70,6 +70,7 @@ export const en = {
   tokenManage: 'Manage tokens',
   tokenRename: 'Rename {name}',
   tokenRemove: 'Delete {name}',
+
   modelIdRequired: 'Model ID is required.',
   modelIdDuplicate: 'Model ID must be unique.',
   modelNameInvalid: 'Display name cannot be empty.',
@@ -184,6 +185,7 @@ export const zh: { [Key in keyof typeof en]: string } = {
   tokenManage: '管理 Token',
   tokenRename: '重命名 {name}',
   tokenRemove: '删除 {name}',
+
   modelIdRequired: '模型 ID 不能为空。',
   modelIdDuplicate: '模型 ID 不能重复。',
   modelNameInvalid: '显示名称不能为空。',

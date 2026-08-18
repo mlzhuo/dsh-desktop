@@ -39,16 +39,15 @@ export function WorkspaceId(id: string): WorkspaceId {
 }
 
 /**
- * An archiveSession/deleteSession request named a session neither live nor in
- * session persistence — a definite miss only; storage faults propagate as
- * themselves.
+ * An archiveSession request named a session neither live nor in session
+ * persistence — a definite miss only; storage faults propagate as themselves.
  */
 export class WorkspaceUnknownSessionError extends Error {
   /**
    * @param sessionId - The unknown session id.
    */
   constructor(readonly sessionId: SessionId) {
-    super(`cannot operate on session '${sessionId}': live sessions and session persistence hold no such session`)
+    super(`cannot archive session '${sessionId}': live sessions and session persistence hold no such session`)
     this.name = 'WorkspaceUnknownSessionError'
   }
 }

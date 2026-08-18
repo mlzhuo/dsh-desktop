@@ -33,16 +33,17 @@ import {
 } from '../api/sessions.schema.ts'
 import {
   workspaceArchiveSessionValueSchema,
-  workspaceArchiveWorkspaceValueSchema,
   workspaceCreateValueSchema,
   workspaceDeleteValueSchema,
   workspaceDeleteSessionValueSchema,
+  workspaceArchiveWorkspaceValueSchema,
   workspaceUnarchiveWorkspaceValueSchema,
   workspaceInsertBeforeValueSchema,
   workspaceInsertSessionBeforeValueSchema,
   workspaceListValueSchema,
   workspaceRenameValueSchema,
 } from '../api/workspace.schema.ts'
+import { statsDailyValueSchema, statsBalanceValueSchema } from '../api/stats.schema.ts'
 import { skillListValueSchema } from '../api/skills.schema.ts'
 import {
   agentPresetCopyValueSchema, agentPresetListValueSchema, agentPresetOpenDocumentValueSchema,
@@ -64,7 +65,6 @@ import {
   credentialsDescribeValueSchema, credentialsSetValueSchema, credentialsUnsetValueSchema,
 } from '../api/credentials.schema.ts'
 import { llmDiscoverModelsValueSchema, llmModelsValueSchema, llmProvidersValueSchema } from '../api/llm.schema.ts'
-import { statsBalanceValueSchema, statsDailyValueSchema } from '../api/stats.schema.ts'
 import {
   subagentHistoryValueSchema,
   subagentInterruptValueSchema,

@@ -10,7 +10,6 @@
  * (same package — direct composition, no slot between them).
  */
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { Dispatch, SetStateAction } from 'react'
 import clsx from 'clsx'
 import {
   Button, IconCloseFill14, IconPersonalizationOutline16,
@@ -250,132 +249,6 @@ type SessionTreeProps = Pick<
   orderBy: SessionOrderBy
 }
 
-/** One workspace group section: the project header row plus its visible session rows. */
-function WorkspaceGroupSection({ group, t, current, now, expandedSessions, onToggleSessions, onToggle, onCreate, actions, drag, workspaceMarker, hoverWorkspace, dropWorkspace, dragState, setDragState, commitSessionDrag, sessionDropCommitted, onSessionRename, onSessionArchive, onSessionDelete, onOpen, forkSession }: {
-  group: GroupNode
-  t: WorkspaceBrowserProps['t']
-  current: SessionNode['id'] | undefined
-  now: number
-  /** This group's session rows are fully expanded (the local overflow control). */
-  expandedSessions: boolean
-  onToggleSessions: () => void
-  onToggle: () => void
-  onCreate: () => void
-  /** Real-Workspace actions; absent for the ungrouped bucket (no menu shown). */
-  actions?: {
-    rename: () => void
-    delete: () => void
-    toggleArchive: () => void
-    archived: boolean
-  } | undefined
-  /** Present only for real Workspace rows in the grouped view (archived rows are not reorderable). */
-  drag?: { start: () => void; end: () => void } | undefined
-  workspaceMarker: 'before' | 'after' | null
-  hoverWorkspace?: ((half: 'before' | 'after') => void) | undefined
-  dropWorkspace?: ((half: 'before' | 'after') => void) | undefined
-  dragState: DragState | null
-  setDragState: Dispatch<SetStateAction<DragState | null>>
-  commitSessionDrag: (activeDrag: DragState, over: NonNullable<DragState['over']>) => void
-  /** Shared commit guard between the row drag lifecycle and the drop commit. */
-  sessionDropCommitted: ReturnType<typeof useRef<boolean>>
-  onSessionRename: SessionTreeProps['onSessionRename']
-  onSessionArchive: SessionTreeProps['onSessionArchive']
-  onSessionDelete: SessionTreeProps['onSessionDelete']
-  onOpen: SessionTreeProps['open']
-  forkSession: SessionTreeProps['forkSession']
-}) {
-  const visibleSessions = expandedSessions ? group.sessions : group.sessions.slice(0, COLLAPSED_SESSION_LIMIT)
-  return (
-    // Group section: header row + expanded top-level session rows. The
-    // inter-group breathing room is the section's own margin
-    // (WorkspaceBrowser.module.css).
-    <div
-      key={group.key}
-      className={clsx(
-        css.groupSection,
-        workspaceMarker === 'before' && css.workspaceDropBefore,
-        workspaceMarker === 'after' && css.workspaceDropAfter,
-      )}
-      onDragOver={dragState === null || hoverWorkspace === undefined
-        ? undefined
-        : (e) => {
-          e.preventDefault()
-          e.dataTransfer.dropEffect = 'move'
-          hoverWorkspace(workspaceGroupHalf(e))
-        }}
-      onDrop={dragState === null || dropWorkspace === undefined
-        ? undefined
-        : (e) => {
-          e.preventDefault()
-          dropWorkspace(workspaceGroupHalf(e))
-        }}
-    >
-      <ProjectRowItem
-        group={group}
-        t={t}
-        onToggle={onToggle}
-        onCreate={onCreate}
-        drag={drag}
-        actions={actions}
-      />
-      {visibleSessions.map((node) => {
-        // Session drag never leaves its group. Ungrouped writes only the
-        // browser-local account; real Workspaces may also write Host order.
-        const sameGroupDrag = dragState !== null && dragState.accountKey === group.key
-        const sessionDragProps = {
-          start: () => {
-            sessionDropCommitted.current = false
-            setDragState({ accountKey: group.key, sessionId: node.id, over: null })
-          },
-          active: sameGroupDrag,
-          marker: sameGroupDrag && dragState.over?.id === node.id ? dragState.over.half : null,
-          hover: (half: 'before' | 'after') => {
-            /* v8 ignore next -- narrowing guard: Rows gates hover on `active`, which is false while the drag state is null. */
-            setDragState(d => (d === null ? d : { ...d, over: { id: node.id, half } }))
-          },
-          drop: (half: 'before' | 'after') => {
-            /* v8 ignore next -- narrowing guard: Rows gates drop on `active`, which is false while the drag state is null. */
-            if (dragState === null) return
-            commitSessionDrag(dragState, { id: node.id, half })
-          },
-          end: () => {
-            if (dragState?.over !== null && dragState?.over !== undefined) commitSessionDrag(dragState, dragState.over)
-            else setDragState(null)
-            sessionDropCommitted.current = false
-          },
-        }
-        return (
-          <SessionNodeItem
-            key={node.id}
-            node={node}
-            currentId={current}
-            now={now}
-            onOpen={onOpen}
-            onRename={onSessionRename}
-            onFork={forkSession}
-            onArchive={onSessionArchive}
-            onDelete={onSessionDelete}
-            drag={sessionDragProps}
-            t={t}
-          />
-        )
-      })}
-      {group.sessions.length > COLLAPSED_SESSION_LIMIT && (
-        <button
-          type="button"
-          className={css.sessionOverflowButton}
-          aria-expanded={expandedSessions}
-          onClick={onToggleSessions}
-        >
-          {expandedSessions
-            ? t('sessions.collapse')
-            : t('sessions.expand', { n: group.sessions.length - COLLAPSED_SESSION_LIMIT })}
-        </button>
-      )}
-    </div>
-  )
-}
-
 /** The scrolling session tree; unmounting drops the sessions subscription and expand-all state. */
 function SessionTree({
   useSessions, startSession, open, forkSession, workspaces, archivedSessionIds,
@@ -458,6 +331,11 @@ function SessionTree({
     }),
     [list, orderedWorkspaces, archivedSessionIds, expandedGroups, sessionOrderByAccount],
   )
+  const activeGroups = groups.filter(group => group.archivedAt === null)
+  const archivedGroups = groups.filter(group => group.archivedAt !== null)
+  // The Archived section is a bottom bucket (default open) folded through the
+  // shared group-expansion store under a reserved key.
+  const archivedExpanded = groupExpansion[ARCHIVED_GROUP_KEY] ?? true
   const now = Date.now()
   const commitSessionDrag = (activeDrag: DragState, over: NonNullable<DragState['over']>): void => {
     if (sessionDropCommitted.current) return
@@ -507,11 +385,6 @@ function SessionTree({
       console.warn('workspace reorder rejected:', reason)
     })
   }
-  const activeGroups = groups.filter(group => group.archivedAt === null)
-  const archivedGroups = groups.filter(group => group.archivedAt !== null)
-  // The Archived section is a bottom bucket (default open) folded through the
-  // shared group-expansion store under a reserved key.
-  const archivedExpanded = groupExpansion[ARCHIVED_GROUP_KEY] ?? true
   const workspaceDropAtListStart = activeGroups[0]?.workspaceId !== undefined
     && workspaceDrag?.over?.id === activeGroups[0].workspaceId
     && workspaceDrag.over.half === 'before'
@@ -525,57 +398,122 @@ function SessionTree({
     hoverWorkspace: ((half: 'before' | 'after') => void) | undefined,
     dropWorkspace: ((half: 'before' | 'after') => void) | undefined,
   ) => (
-    <WorkspaceGroupSection
+    // Group section: header row + expanded top-level session rows. The
+    // inter-group breathing room is the section's own margin
+    // (WorkspaceBrowser.module.css).
+    <div
       key={group.key}
-      group={group}
-      t={t}
-      current={current}
-      now={now}
-      expandedSessions={expandedSessionGroups.includes(group.key)}
-      onToggleSessions={() => { setExpandedSessionGroups(keys => toggled(keys, group.key)) }}
-      onToggle={() => {
-        if (group.expanded) {
-          setExpandedSessionGroups(keys => keys.filter(key => key !== group.key))
-        }
-        setGroupExpanded(group.key, !group.expanded)
-      }}
-      onCreate={() => {
-        if (group.workspaceId !== undefined) {
-          setGroupExpanded(group.key, true)
-          startSession(group.workspaceId)
-        }
-      }}
-      actions={group.workspaceId === undefined
+      className={clsx(
+        css.groupSection,
+        workspaceMarker === 'before' && css.workspaceDropBefore,
+        workspaceMarker === 'after' && css.workspaceDropAfter,
+      )}
+      onDragOver={workspaceDrag === null || hoverWorkspace === undefined
         ? undefined
-        : {
-          rename: () => {
-          /* v8 ignore next -- narrowing guard: the actions object exists only for real-workspace groups. */
-            if (group.workspaceId !== undefined) onRenameRequest(group.workspaceId, group.label)
-          },
-          delete: () => {
-          /* v8 ignore next -- narrowing guard: the actions object exists only for real-workspace groups. */
-            if (group.workspaceId !== undefined) onDeleteRequest(group.workspaceId, group.label)
-          },
-          toggleArchive: () => {
-          /* v8 ignore next -- narrowing guard: the actions object exists only for real-workspace groups. */
-            if (group.workspaceId !== undefined) onToggleArchive(group.workspaceId)
-          },
-          archived: group.archivedAt !== null,
+        : (e) => {
+          e.preventDefault()
+          e.dataTransfer.dropEffect = 'move'
+          hoverWorkspace(workspaceGroupHalf(e))
         }}
-      drag={workspaceDragProps}
-      workspaceMarker={workspaceMarker}
-      hoverWorkspace={hoverWorkspace}
-      dropWorkspace={dropWorkspace}
-      dragState={drag}
-      setDragState={setDrag}
-      commitSessionDrag={commitSessionDrag}
-      sessionDropCommitted={sessionDropCommitted}
-      onSessionRename={onSessionRename}
-      onSessionArchive={onSessionArchive}
-      onSessionDelete={onSessionDelete}
-      onOpen={open}
-      forkSession={forkSession}
-    />
+      onDrop={workspaceDrag === null || dropWorkspace === undefined
+        ? undefined
+        : (e) => {
+          e.preventDefault()
+          dropWorkspace(workspaceGroupHalf(e))
+        }}
+    >
+      <ProjectRowItem
+        group={group}
+        t={t}
+        onToggle={() => {
+          if (group.expanded) {
+            setExpandedSessionGroups(keys => keys.filter(key => key !== group.key))
+          }
+          setGroupExpanded(group.key, !group.expanded)
+        }}
+        onCreate={() => {
+          if (group.workspaceId !== undefined) {
+            setGroupExpanded(group.key, true)
+            startSession(group.workspaceId)
+          }
+        }}
+        drag={workspaceDragProps}
+        actions={group.workspaceId === undefined
+          ? undefined
+          : {
+            rename: () => {
+            /* v8 ignore next -- narrowing guard: the actions object exists only for real-workspace groups. */
+              if (group.workspaceId !== undefined) onRenameRequest(group.workspaceId, group.label)
+            },
+            delete: () => {
+            /* v8 ignore next -- narrowing guard: the actions object exists only for real-workspace groups. */
+              if (group.workspaceId !== undefined) onDeleteRequest(group.workspaceId, group.label)
+            },
+            toggleArchive: () => {
+            /* v8 ignore next -- narrowing guard: the actions object exists only for real-workspace groups. */
+              if (group.workspaceId !== undefined) onToggleArchive(group.workspaceId)
+            },
+            archived: group.archivedAt !== null,
+          }}
+      />
+      {(expandedSessionGroups.includes(group.key)
+        ? group.sessions
+        : group.sessions.slice(0, COLLAPSED_SESSION_LIMIT)
+      ).map((node) => {
+      // Session drag never leaves its group. Ungrouped writes only the
+      // browser-local account; real Workspaces may also write Host order.
+        const sameGroupDrag = drag !== null && drag.accountKey === group.key
+        const dragProps = {
+          start: () => {
+            sessionDropCommitted.current = false
+            setDrag({ accountKey: group.key, sessionId: node.id, over: null })
+          },
+          active: sameGroupDrag,
+          marker: sameGroupDrag && drag.over?.id === node.id ? drag.over.half : null,
+          hover: (half: 'before' | 'after') => {
+          /* v8 ignore next -- narrowing guard: Rows gates hover on `active`, which is false while the drag state is null. */
+            setDrag(d => (d === null ? d : { ...d, over: { id: node.id, half } }))
+          },
+          drop: (half: 'before' | 'after') => {
+          /* v8 ignore next -- narrowing guard: Rows gates drop on `active`, which is false while the drag state is null. */
+            if (drag === null) return
+            commitSessionDrag(drag, { id: node.id, half })
+          },
+          end: () => {
+            if (drag?.over !== null && drag?.over !== undefined) commitSessionDrag(drag, drag.over)
+            else setDrag(null)
+            sessionDropCommitted.current = false
+          },
+        }
+        return (
+          <SessionNodeItem
+            key={node.id}
+            node={node}
+            currentId={current}
+            now={now}
+            onOpen={open}
+            onRename={onSessionRename}
+            onFork={forkSession}
+            onArchive={onSessionArchive}
+            onDelete={onSessionDelete}
+            drag={dragProps}
+            t={t}
+          />
+        )
+      })}
+      {group.sessions.length > COLLAPSED_SESSION_LIMIT && (
+        <button
+          type="button"
+          className={css.sessionOverflowButton}
+          aria-expanded={expandedSessionGroups.includes(group.key)}
+          onClick={() => { setExpandedSessionGroups(keys => toggled(keys, group.key)) }}
+        >
+          {expandedSessionGroups.includes(group.key)
+            ? t('sessions.collapse')
+            : t('sessions.expand', { n: group.sessions.length - COLLAPSED_SESSION_LIMIT })}
+        </button>
+      )}
+    </div>
   )
 
   return (

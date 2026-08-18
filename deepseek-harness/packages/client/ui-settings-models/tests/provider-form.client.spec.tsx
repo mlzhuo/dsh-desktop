@@ -723,13 +723,11 @@ describe('hand-declared providers', () => {
     cleanup()
 
     // A shipped route's models each carry their own protocol, so its editor
-    // offers no route-level protocol to override them with. A profile naming a
-    // credential reference gains the token roster between the key and the
-    // customized fold.
+    // offers no route-level protocol to override them with.
     await mountSection({ providers: { openai: { apiKeyEnv: 'OPENAI_API_KEY' } } })
     openEditor('openai')
     fireEvent.click(screen.getByText(en.customized))
-    expect(fields()).toEqual([en.keyInput, en.tokenSwitch, en.baseUrl])
+    expect(fields()).toEqual([en.keyInput, en.baseUrl])
     cleanup()
 
     // A hand-declared route named its own protocol at creation, so editing it

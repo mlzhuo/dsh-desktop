@@ -33,7 +33,10 @@ function mountShell({ collapsed = false, width = 300 }: { collapsed?: boolean; w
       collapsed={current.collapsed} width={current.width}
       useSessions={neverHook} useWorkspaces={neverHook}
       startSession={startSession} toggleSidebar={toggleSidebar} t={t}
-      statsApi={{ daily: () => Promise.resolve({ rpcId: 'fx', result: { ok: true, value: { generatedAt: 0, timeZone: 'UTC', days: [], repos: [], costEstimated: true } } }), balance: () => Promise.resolve({ rpcId: 'fx', result: { ok: true, value: { available: true, balances: [], total: 0 } } }) }}
+      statsApi={{
+        daily: () => Promise.resolve({ rpcId: 'fx', result: { ok: true, value: { generatedAt: 0, timeZone: 'UTC', days: [], repos: [], costEstimated: true } } }),
+        balance: () => Promise.resolve({ rpcId: 'fx', result: { ok: true, value: { available: false, balances: [], total: 0 } } }),
+      }}
       renderSlot={((
         key: string,
         owner: SidebarFooterActionOwnerProps | SidebarSectionOwnerProps | SidebarSettingsOwnerProps,

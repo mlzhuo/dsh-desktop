@@ -15,8 +15,8 @@ import type { GoalsApi } from './goals.ts'
 import type { SettingsApi } from './settings.ts'
 import type { CredentialsApi } from './credentials.ts'
 import type { LlmApi } from './llm.ts'
-import type { DownloadsApi } from './downloads.ts'
 import type { StatsApi } from './stats.ts'
+import type { DownloadsApi } from './downloads.ts'
 import type { ClientResponse, RpcReceipt } from './rpc.ts'
 
 /** Root interface of the unified API. New client-request domain = one new file pair + one field here + one map row. */
@@ -63,10 +63,8 @@ export type { GoalsApi, GoalId, GoalRef } from './goals.ts'
 export type { SettingsApi, SettingsNamespaceView, SettingsPathOpView, SettingsSecretView } from './settings.ts'
 export type { CredentialsApi, CredentialView } from './credentials.ts'
 export type { ConfigurableProviderView, DiscoveredModelView, LlmApi } from './llm.ts'
+export type { StatsApi, StatsCommitSample, StatsDay, StatsDayCode, StatsDailyValue, StatsDayTokens } from './stats.ts'
 export type { DownloadsApi } from './downloads.ts'
-export type {
-  StatsApi, StatsCommitSample, StatsDay, StatsDayCode, StatsDailyValue, StatsDayTokens,
-} from './stats.ts'
 export type { ApprovalResponsePayload } from './approvals.ts'
 
 export type { QuestionResponsePayload } from './questions.ts'
