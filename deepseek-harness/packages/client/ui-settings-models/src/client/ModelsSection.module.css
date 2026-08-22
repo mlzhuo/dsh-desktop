@@ -718,6 +718,12 @@ select.tokenSelect {
   --dsh-scrollbar-thumb-hover: var(--dsw-alias-scrollbar-hover-l2);
 }
 
+.candidateActions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
 .candidateList {
   display: flex;
   flex-direction: column;

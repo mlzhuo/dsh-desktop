@@ -24,6 +24,13 @@ DESKTOP="$ROOT/dsh-desktop"
 MODE="${1:-app}"
 SECONDS=0
 
+# v0.1.1+ 官方构建档案：release 打包（bundle:host 的 pack.ts）会校验
+# .dsh-build/client-build-environment.json 必须匹配 official 档案
+# （DSH_CLIENT_BUILD_PROFILE=official + DSH_CLIENT_TITLE=DeepSeek Harness）；
+# 未设置时 `pnpm build` 会写入 local 档案导致打包失败。DSH_CLIENT_COMMIT_HASH
+# 由 build 脚本自动取自 git HEAD，无需手动设置。
+export DSH_BUILD_CLIENT_PROFILE=official
+
 # ---------- 工具链 ----------
 if ! command -v node >/dev/null 2>&1; then
   # Finder / 非交互 shell 常没有 nvm 的 PATH，兜底取最新安装的 nvm node
